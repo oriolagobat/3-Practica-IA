@@ -154,6 +154,16 @@ def buildtree(part: Data, scoref=entropy, beta=0):
         # The partition is pure
         return DecisionNode(results=unique_counts(part))
 
+    best_gain, best_criteria, best_sets = _search_best_params(part, scoref)
+
+    if best_gain < beta:
+        return DecisionNode(results=unique_counts(part))
+
+    return DecisionNode(col=best_criteria[0], value=best_criteria[1],
+                        tb=buildtree(best_sets[0]), fb=buildtree(best_sets[1]))
+
+
+def _search_best_params(part: Data, scoref=entropy):
     # Set up some variables to track the best criteria
     best_gain = 0
     best_criteria = None
@@ -174,18 +184,45 @@ def buildtree(part: Data, scoref=entropy, beta=0):
                 best_criteria = (i, value)
                 best_sets = set1, set2
 
-    if best_gain < beta:
-        return DecisionNode(results=unique_counts(part))
-
-    return DecisionNode(col=best_criteria[0], value=best_criteria[1],
-                        tb=buildtree(best_sets[0]), fb=buildtree(best_sets[1]))
+    return best_gain, best_criteria, best_sets
 
 
 def iterative_buildtree(part: Data, scoref=entropy, beta=0):
     """
     t10: Define the iterative version of the function buildtree
     """
-    stack = Stack
+
+    if len(part) == 0:
+        return DecisionNode(results=unique_counts(part))
+
+    stack = Stack()
+    node_stack = Stack()
+    stack.push((0, part, None))
+
+    while not stack.isEmpty():
+        context, data, criteria = stack.pop()
+        if context == 0:  # No built sub-trees
+            current_score = scoref(data)
+            if current_score == 0:
+                node_stack.push(DecisionNode(results=unique_counts(data)))
+
+            else:
+                best_gain, best_criteria, best_sets, = _search_best_params(data, scoref)
+                if best_gain < beta:
+                    node_stack.push(DecisionNode(results=unique_counts(data)))
+                else:
+                    stack.push((1, data, best_criteria))
+                    stack.push((0, best_sets[0], best_criteria))
+                    stack.push((0, best_sets[1], best_criteria))
+
+        elif context == 1:
+            tb = node_stack.pop()  # True tree
+            fb = node_stack.pop()  # False tree
+            node_stack.push(DecisionNode(col=criteria[0], value=criteria[1],
+                                         tb=tb, fb=fb))
+
+            if len(data) == len(part):  # If root node
+                return node_stack.pop()
 
 
 def classify(tree, values):
@@ -241,6 +278,9 @@ def main():
     headers, data = read(filename)
     tree = buildtree(data)
     print_tree(tree, headers)
+    print("\n\n\n")
+    it_tree = iterative_buildtree(data)
+    print_tree(it_tree, headers)
 
 
 if __name__ == "__main__":
