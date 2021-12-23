@@ -4,16 +4,19 @@ from typing import List, Tuple
 from collections import Counter
 import sys
 
+from util import Stack
+
 # Used for typing
 Data = List[List]
 
 
 def _parse_value(value: str):
     try:
-        if float(value) == int(value):
-            return int(value)
-        else:
-            return float(value)
+        return int(value)
+    except ValueError:
+        pass
+    try:
+        return float(value)
     except ValueError:
         return value
 
@@ -47,13 +50,6 @@ def unique_counts(part: Data):
         label = row[-1]
         results[label] += 1
     return results
-    """
-    # Alternative using the counter directly
-    labels = list()
-    for row in part:
-        labels.append(row[-1])
-    return Counter(labels)
-    """
 
 
 def gini_impurity(part: Data):
@@ -68,11 +64,11 @@ def gini_impurity(part: Data):
     imp = 1
     for count in results.values():
         p = count / total
-        imp -= p**2
+        imp -= p ** 2
     return imp
 
 
-def _log2(value: int):
+def _log2(value: float):
     return log(value) / log(2)
 
 
@@ -92,11 +88,11 @@ def entropy(rows: Data):
 
 
 def _split_numeric(prototype: List, column: int, value: int):
-    return prototipe[column] >= value
+    return prototype[column] >= value
 
 
 def _split_categorical(prototype: List, column: int, value: int):
-    raise NotImplementedError
+    return prototype[column] == value
 
 
 def divideset(part: Data, column: int, value: int) -> Tuple[Data, Data]:
@@ -104,12 +100,17 @@ def divideset(part: Data, column: int, value: int) -> Tuple[Data, Data]:
     t7: Divide a set on a specific column. Can handle
     numeric or categorical values
     """
+    set1 = []
+    set2 = []
+
     if isinstance(value, (int, float)):
         split_function = _split_numeric
     else:
         split_function = _split_categorical
-    #...
-    return (set1, set2)
+    for row in part:
+        set1.append(row) if split_function(row, column, value) else set2.append(row)
+
+    return set1, set2
 
 
 class DecisionNode:
@@ -177,14 +178,14 @@ def buildtree(part: Data, scoref=entropy, beta=0):
         return DecisionNode(results=unique_counts(part))
 
     return DecisionNode(col=best_criteria[0], value=best_criteria[1],
-        tb=buildtree(best_sets[0]), fb=buildtree(best_sets[1]))
+                        tb=buildtree(best_sets[0]), fb=buildtree(best_sets[1]))
 
 
 def iterative_buildtree(part: Data, scoref=entropy, beta=0):
     """
     t10: Define the iterative version of the function buildtree
     """
-    raise NotImplementedError
+    stack = Stack
 
 
 def classify(tree, values):
