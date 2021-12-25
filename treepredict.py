@@ -115,7 +115,7 @@ def divideset(part: Data, column: int, value: int) -> Tuple[Data, Data]:
 
 
 class DecisionNode:
-    def __init__(self, col=-1, value=None, results=None, tb=None, fb=None):
+    def __init__(self, col=-1, value=None, results=None, tb=None, fb=None, goodness=0):
         """
         t8: We have 5 member variables:
         - col is the column index which represents the
@@ -132,10 +132,12 @@ class DecisionNode:
         self.results = results
         self.tb = tb
         self.fb = fb
+        self.goodness = goodness
 
 
 def _gain(part: Data, set1: Data, set2: Data, scoref):
     p1 = len(set1) / len(part)
+
     p2 = len(set2) / len(part)
     return scoref(part) - p1 * scoref(set1) - p2 * scoref(set2)
 
@@ -153,15 +155,15 @@ def buildtree(part: Data, scoref=entropy, beta=0):
 
     if current_score == 0:
         # The partition is pure
-        return DecisionNode(results=unique_counts(part))
+        return DecisionNode(results=unique_counts(part), goodness=0)
 
     best_gain, best_criteria, best_sets = _search_best_params(part, scoref)
 
     if best_gain < beta:
-        return DecisionNode(results=unique_counts(part))
+        return DecisionNode(results=unique_counts(part), goodness=best_gain)
 
     return DecisionNode(col=best_criteria[0], value=best_criteria[1],
-                        tb=buildtree(best_sets[0]), fb=buildtree(best_sets[1]))
+                        tb=buildtree(best_sets[0]), fb=buildtree(best_sets[1]), goodness=best_gain)
 
 
 def _search_best_params(part: Data, scoref=entropy):
@@ -194,33 +196,33 @@ def iterative_buildtree(part: Data, scoref=entropy, beta=0):
     """
 
     if len(part) == 0:
-        return DecisionNode(results=unique_counts(part))
+        return DecisionNode(results=unique_counts(part), goodness=0)
 
     stack = Stack()
     node_stack = Stack()
-    stack.push((0, part, None))
+    stack.push((0, part, None, 0))
 
     while not stack.isEmpty():
-        context, data, criteria = stack.pop()
+        context, data, criteria, goodness = stack.pop()
         if context == 0:  # No built sub-trees
             current_score = scoref(data)
             if current_score == 0:
-                node_stack.push(DecisionNode(results=unique_counts(data)))
+                node_stack.push(DecisionNode(results=unique_counts(data), goodness=goodness))
 
             else:
                 best_gain, best_criteria, best_sets, = _search_best_params(data, scoref)
                 if best_gain < beta:
                     node_stack.push(DecisionNode(results=unique_counts(data)))
                 else:
-                    stack.push((1, data, best_criteria))
-                    stack.push((0, best_sets[0], best_criteria))
-                    stack.push((0, best_sets[1], best_criteria))
+                    stack.push((1, data, best_criteria, best_gain))
+                    stack.push((0, best_sets[0], best_criteria, best_gain))
+                    stack.push((0, best_sets[1], best_criteria, best_gain))
 
         elif context == 1:
             tb = node_stack.pop()  # True tree
             fb = node_stack.pop()  # False tree
             node_stack.push(DecisionNode(col=criteria[0], value=criteria[1],
-                                         tb=tb, fb=fb))
+                                         tb=tb, fb=fb, goodness=goodness))
 
             if len(data) == len(part):  # If root node
                 return node_stack.pop()
@@ -286,13 +288,11 @@ def prune(tree: DecisionNode, threshold: float):
         prune(tree.tb, threshold)
     if _non_leaf(tree.fb):
         prune(tree.fb, threshold)
-    elif _possible_merge(tree):
-        print(tree.col)
-        print(tree.value)
+    elif _both_children_leaf(tree):
         print("Sóc un possible merge, haurien de ser dos")
 
 
-def _possible_merge(tree: DecisionNode):
+def _both_children_leaf(tree: DecisionNode):
     print("Entro poss")
     """
     Returns true if both of this node children are leaves (Non-None results)
@@ -313,11 +313,11 @@ def main():
     headers, data = read(filename)
 
     """ APARTAT 1 """
-    # tree = buildtree(data)
-    # print_tree(tree, headers)
-    # print("\n\n\n")
-    # it_tree = iterative_buildtree(data)
-    # print_tree(it_tree, headers)
+    tree = buildtree(data)
+    print_tree(tree, headers)
+    print("\n\n\n")
+    it_tree = iterative_buildtree(data)
+    print_tree(it_tree, headers)
 
     """ APARTAT 2, we get the rows to predict by dividing dataset into train and test """
     # train, test = evaluation.train_test_split(data, 0.2)
@@ -326,9 +326,9 @@ def main():
     #     classify(tree, row[:-1])
 
     """ APARTAT 3 """
-    tree = buildtree(data)
-    print_tree(tree, headers)
-    prune(tree, 0)
+    # tree = buildtree(data)
+    # print_tree(tree, headers)
+    # prune(tree, 0)
 
 
 if __name__ == "__main__":
