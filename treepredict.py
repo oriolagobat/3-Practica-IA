@@ -4,6 +4,7 @@ from typing import List, Tuple
 from collections import Counter
 import sys
 
+import evaluation
 from util import Stack
 
 # Used for typing
@@ -225,8 +226,19 @@ def iterative_buildtree(part: Data, scoref=entropy, beta=0):
                 return node_stack.pop()
 
 
-def classify(tree, values):
-    raise NotImplementedError
+def classify(tree: DecisionNode, row):
+    node = tree
+    while node.tb is not None and node.fb is not None:
+        node = node.tb if _classify_function(tree, row) else node.fb
+    prediction = node.results.most_common()[0][0]
+    print("Prediction for row: ", row, "is label", prediction)
+
+
+def _classify_function(tree: DecisionNode, row):
+    if isinstance(tree.value, (int, float)):
+        return _split_numeric(row, tree.col, tree.value)
+    else:
+        return _split_categorical(row, tree.col, tree.value)
 
 
 def print_tree(tree, headers=None, indent=""):
@@ -276,11 +288,15 @@ def main():
         filename = "decision_tree_example.txt"
 
     headers, data = read(filename)
-    tree = buildtree(data)
-    print_tree(tree, headers)
-    print("\n\n\n")
-    it_tree = iterative_buildtree(data)
-    print_tree(it_tree, headers)
+    # tree = buildtree(data)
+    # print_tree(tree, headers)
+    # print("\n\n\n")
+    # it_tree = iterative_buildtree(data)
+    # print_tree(it_tree, headers)
+    train, test = evaluation.train_test_split(data, 0.2)
+    tree = buildtree(train)
+    for row in test:
+        classify(tree, row)
 
 
 if __name__ == "__main__":

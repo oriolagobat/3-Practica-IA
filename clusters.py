@@ -22,23 +22,25 @@ def readfile(filename: str) -> Tuple[List, List, List]:
 # They are normalized between 0 and 1, where 1 means two vectors are identical
 def euclidean(v1, v2):
     distance = 0  # TODO
-    return 1 / (1+distance)
+    return 1 / (1 + distance)
+
 
 def euclidean_squared(v1, v2):
-    return euclidean(v1, v2)**2
+    return euclidean(v1, v2) ** 2
+
 
 def pearson(v1, v2):
     # Simple sums
     sum1 = sum(v1)
     sum2 = sum(v2)
     # Sums of squares
-    sum1sq = sum([v**2 for v in v1])
-    sum2sq = sum([v**2 for v in v2])
+    sum1sq = sum([v ** 2 for v in v1])
+    sum2sq = sum([v ** 2 for v in v2])
     # Sum of the products
     products = sum([a * b for (a, b) in zip(v1, v2)])
     # Calculate r (Pearson score)
     num = products - (sum1 * sum2 / len(v1))
-    den = sqrt((sum1sq - sum1**2 / len(v1)) * (sum2sq - sum2**2 / len(v1)))
+    den = sqrt((sum1sq - sum1 ** 2 / len(v1)) * (sum2sq - sum2 ** 2 / len(v1)))
     if den == 0:
         return 0
     return 1 - num / den
@@ -52,6 +54,7 @@ class BiCluster:
         self.vec = vec
         self.id = id
         self.distance = distance
+
 
 def hcluster(rows, distance=pearson):
     distances = {}  # Cache of distance calculations
@@ -87,6 +90,7 @@ def hcluster(rows, distance=pearson):
 
     return clust[0]
 
+
 def printclust(clust: BiCluster, labels=None, n=0):
     # indent to make a hierarchy layout
     indent = " " * n
@@ -101,13 +105,12 @@ def printclust(clust: BiCluster, labels=None, n=0):
             print(f"{indent}{labels[clust.id]}")
     # Print the right and left branches
     if clust.left != None:
-        printclust(clust.left, labels=labels, n=n+1)
+        printclust(clust.left, labels=labels, n=n + 1)
     if clust.right != None:
-        printclust(clust.right, labels=labels, n=n+1)
+        printclust(clust.right, labels=labels, n=n + 1)
 
 
 # ......... K-MEANS ..........
 def kcluster(rows, distance, k=4):
     # TODO
     raise NotImplementedError
-
