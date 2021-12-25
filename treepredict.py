@@ -281,6 +281,29 @@ def print_data(headers, data):
     print('-' * ((colsize + 1) * len(headers) + 1))
 
 
+def prune(tree: DecisionNode, threshold: float):
+    if _non_leaf(tree.tb):
+        prune(tree.tb, threshold)
+    if _non_leaf(tree.fb):
+        prune(tree.fb, threshold)
+    elif _possible_merge(tree):
+        print(tree.col)
+        print(tree.value)
+        print("Sóc un possible merge, haurien de ser dos")
+
+
+def _possible_merge(tree: DecisionNode):
+    print("Entro poss")
+    """
+    Returns true if both of this node children are leaves (Non-None results)
+    """
+    return tree.tb.results is not None and tree.fb.results is not None
+
+
+def _non_leaf(tree: DecisionNode):
+    return tree.results is None
+
+
 def main():
     try:
         filename = sys.argv[1]
@@ -288,15 +311,24 @@ def main():
         filename = "decision_tree_example.txt"
 
     headers, data = read(filename)
+
+    """ APARTAT 1 """
     # tree = buildtree(data)
     # print_tree(tree, headers)
     # print("\n\n\n")
     # it_tree = iterative_buildtree(data)
     # print_tree(it_tree, headers)
-    train, test = evaluation.train_test_split(data, 0.2)
-    tree = buildtree(train)
-    for row in test:
-        classify(tree, row)
+
+    """ APARTAT 2, we get the rows to predict by dividing dataset into train and test """
+    # train, test = evaluation.train_test_split(data, 0.2)
+    # tree = buildtree(train)
+    # for row in test:
+    #     classify(tree, row[:-1])
+
+    """ APARTAT 3 """
+    tree = buildtree(data)
+    print_tree(tree, headers)
+    prune(tree, 0)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ def train_test_split(dataset, test_size: Union[float, int], seed=None):
     choices = list(range(n_rows))
     test_rows = random.choices(choices, k=test_size)
 
-    test = [row[:-1] for (i, row) in enumerate(dataset) if i in test_rows]
+    test = [row for (i, row) in enumerate(dataset) if i in test_rows]
     train = [row for (i, row) in enumerate(dataset) if i not in test_rows]
 
     return train, test
