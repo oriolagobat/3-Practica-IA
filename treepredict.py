@@ -4,7 +4,6 @@ from typing import List, Tuple
 from collections import Counter
 import sys
 
-import evaluation
 from util import Stack
 
 # Used for typing
@@ -289,11 +288,11 @@ def prune(tree: DecisionNode, threshold: float):
     if _non_leaf(tree.fb):
         prune(tree.fb, threshold)
     elif _both_children_leaf(tree):
-        print("Sóc un possible merge, haurien de ser dos")
+        if tree.goodness < threshold:
+            _merge_leaves(tree)
 
 
 def _both_children_leaf(tree: DecisionNode):
-    print("Entro poss")
     """
     Returns true if both of this node children are leaves (Non-None results)
     """
@@ -302,6 +301,25 @@ def _both_children_leaf(tree: DecisionNode):
 
 def _non_leaf(tree: DecisionNode):
     return tree.results is None
+
+
+def _merge_leaves(tree: DecisionNode):
+    # tree = DecisionNode(results=tree.tb.results + tree.fb.results)
+    tree.col = -1
+    tree.value = None
+    tree.results = _merge_results(tree)
+    tree.tb = None
+    tree.fb = None
+    tree.goodness = 0
+
+
+def _merge_results(tree: DecisionNode):
+    new_results = Counter()
+    merged = tree.tb.results + tree.fb.results
+    new_label = merged.most_common()[0][0]
+    new_count = sum(merged.values())
+    new_results[new_label] = new_count
+    return new_results
 
 
 def main():
@@ -313,11 +331,11 @@ def main():
     headers, data = read(filename)
 
     """ APARTAT 1 """
-    tree = buildtree(data)
-    print_tree(tree, headers)
-    print("\n\n\n")
-    it_tree = iterative_buildtree(data)
-    print_tree(it_tree, headers)
+    # tree = buildtree(data)
+    # print_tree(tree, headers)
+    # print("\n\n\n")
+    # it_tree = iterative_buildtree(data)
+    # print_tree(it_tree, headers)
 
     """ APARTAT 2, we get the rows to predict by dividing dataset into train and test """
     # train, test = evaluation.train_test_split(data, 0.2)
@@ -326,9 +344,11 @@ def main():
     #     classify(tree, row[:-1])
 
     """ APARTAT 3 """
-    # tree = buildtree(data)
-    # print_tree(tree, headers)
-    # prune(tree, 0)
+    tree = buildtree(data)
+    print_tree(tree, headers)
+    prune(tree, 0.85)
+    print("\n\n\n")
+    print_tree(tree, headers)
 
 
 if __name__ == "__main__":
