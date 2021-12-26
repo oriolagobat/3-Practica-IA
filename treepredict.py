@@ -187,7 +187,7 @@ def iterative_buildtree(part: Data, scoref=entropy, beta=0):
     node_stack = Stack()
     stack.push((0, part, None, 0))
 
-    while not stack.isEmpty():
+    while not stack.is_empty():
         context, data, criteria, goodness = stack.pop()
         if context == 0:  # No built sub-trees
             current_score = scoref(data)

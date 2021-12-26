@@ -23,7 +23,7 @@ class Stack:
         """
         return self.stack.pop()
 
-    def isEmpty(self):
+    def is_empty(self):
         """
         Returns true if stack is empty
         """
