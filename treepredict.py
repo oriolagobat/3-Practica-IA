@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+File that implements the construction of a decision tree and runs the main tasks of the project
+"""
 from math import log
 from typing import List, Tuple
 from collections import Counter
@@ -30,7 +33,7 @@ def read(file_name: str, separator: str = ",") -> Tuple[List[str], Data]:
     Return the headers as a list, and the data
     """
     headers = None
-    data = list()
+    data = []
     with open(file_name) as file_:
         for line in file_:
             values = line.strip().split(separator)
@@ -66,8 +69,8 @@ def gini_impurity(part: Data):
     results = unique_counts(part)
     imp = 1
     for count in results.values():
-        p = count / total
-        imp -= p ** 2
+        prob = count / total
+        imp -= prob ** 2
     return imp
 
 
@@ -85,8 +88,8 @@ def entropy(rows: Data):
 
     imp = 0
     for count in results.values():
-        p = count / total
-        imp -= p * _log2(p)
+        prob = count / total
+        imp -= prob * _log2(prob)
     return imp
 
 
@@ -117,17 +120,17 @@ def divideset(part: Data, column: int, value: int) -> Tuple[Data, Data]:
 
 
 def _gain(part: Data, set1: Data, set2: Data, scoref):
-    p1 = len(set1) / len(part)
+    prob1 = len(set1) / len(part)
 
-    p2 = len(set2) / len(part)
-    return scoref(part) - p1 * scoref(set1) - p2 * scoref(set2)
+    prob2 = len(set2) / len(part)
+    return scoref(part) - prob1 * scoref(set1) - prob2 * scoref(set2)
 
 
 def buildtree(part: Data, scoref=entropy, beta=0):
     """
     t9: Define a new function buildtree. This is a recursive function
     that builds a decision tree using any of the impurity measures we
-    have seen. The stop criterion is max_s\Delta i(s,t) < \beta
+    have seen. The stop criterion is max_s(Delta i(s,t) < beta)
     """
     if len(part) == 0:
         return DecisionNode()
@@ -144,7 +147,8 @@ def buildtree(part: Data, scoref=entropy, beta=0):
         return DecisionNode(results=unique_counts(part), goodness=best_gain)
 
     return DecisionNode(col=best_criteria[0], value=best_criteria[1],
-                        true_branch=buildtree(best_sets[0]), false_branch=buildtree(best_sets[1]), goodness=best_gain)
+                        true_branch=buildtree(best_sets[0]),
+                        false_branch=buildtree(best_sets[1]), goodness=best_gain)
 
 
 def _search_best_params(part: Data, scoref=entropy):
@@ -200,16 +204,19 @@ def iterative_buildtree(part: Data, scoref=entropy, beta=0):
                     stack.push((0, best_sets[1], best_criteria, best_gain))
 
         elif context == 1:
-            tb = node_stack.pop()  # True tree
-            fb = node_stack.pop()  # False tree
+            true_branch = node_stack.pop()  # True tree
+            false_branch = node_stack.pop()  # False tree
             node_stack.push(DecisionNode(col=criteria[0], value=criteria[1],
-                                         true_branch=tb, false_branch=fb, goodness=goodness))
+                                         true_branch=true_branch, false_branch=false_branch, goodness=goodness))
 
             if len(data) == len(part):  # If root node
                 return node_stack.pop()
 
 
 def classify(tree: DecisionNode, row):
+    """
+    Returns the prediction for a certain row given a tree.
+    """
     node = tree
     while node.true_branch is not None and node.false_branch is not None:
         node = node.true_branch if _classify_function(tree, row) else node.false_branch
@@ -220,8 +227,7 @@ def classify(tree: DecisionNode, row):
 def _classify_function(tree: DecisionNode, row):
     if isinstance(tree.value, (int, float)):
         return _split_numeric(row, tree.col, tree.value)
-    else:
-        return _split_categorical(row, tree.col, tree.value)
+    return _split_categorical(row, tree.col, tree.value)
 
 
 def print_tree(tree, headers=None, indent=""):
@@ -246,6 +252,9 @@ def print_tree(tree, headers=None, indent=""):
 
 
 def print_data(headers, data):
+    """
+    Prints tree data.
+    """
     colsize = 15
     print('-' * ((colsize + 1) * len(headers) + 1))
     print("|", end="")
@@ -265,6 +274,10 @@ def print_data(headers, data):
 
 
 def main():
+    """
+    Executes the main course of the program
+    Comment any call to any task you don't want to execute
+    """
     try:
         filename = sys.argv[1]
     except IndexError:
@@ -350,9 +363,11 @@ def _find_optimal_threshold(data):
     no_threshold = evaluation.cross_validation(dataset=train, k=5)
     mid_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.5)
     three_quarters_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.75)
-    accuracy_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=evaluation.get_accuracy)
+    accuracy_threshold = evaluation.cross_validation(
+        dataset=train, k=5, threshold=evaluation.get_accuracy)
 
-    threshold_results += [no_threshold] + [mid_threshold] + [three_quarters_threshold] + [accuracy_threshold]
+    threshold_results += [no_threshold] + [mid_threshold] \
+                         + [three_quarters_threshold] + [accuracy_threshold]
     best_threshold = max(threshold_results)
     print("Best threshold found is: " + "{:.2f}".format(best_threshold))
 
@@ -360,7 +375,8 @@ def _find_optimal_threshold(data):
     pruning.prune(best_threshold_model, best_threshold)
     best_threshold_accuracy = evaluation.get_accuracy(best_threshold_model, test)
     print(
-        "Accuracy found with test dataset, on tree trained with training dataset and pruned with the best threshold "
+        "Accuracy found with test dataset, "
+        "on tree trained with training dataset and pruned with the best threshold "
         "found is: "
         + "{:.2f}".format(best_threshold_accuracy))
 
