@@ -1,3 +1,6 @@
+"""
+Implements the methods that evaluate a decision tree, rather than building it
+"""
 import random
 from typing import Union, List
 
@@ -7,6 +10,10 @@ from decision_node import DecisionNode
 
 
 def train_test_split(dataset, test_size: Union[float, int], seed=None):
+    """
+    Given a dataset, splits these data randomly into train and test,
+     making the test ones test_size % of the total dataset.
+    """
     if seed:
         random.seed(seed)
 
@@ -27,6 +34,10 @@ def train_test_split(dataset, test_size: Union[float, int], seed=None):
 
 
 def get_accuracy(tree: DecisionNode, dataset):
+    """
+    Given a certain tree,
+    returns the accuracy of this tree to predict the label of the data in dataset
+    """
     correct = 0
     for row in dataset:
         if treepredict.classify(tree, row[:-1]) == row[-1]:
@@ -35,11 +46,17 @@ def get_accuracy(tree: DecisionNode, dataset):
 
 
 def mean(values: List[float]):
+    """
+    Given a list of values, returns the mean of the values
+    """
     return sum(values) / len(values)
 
 
-def cross_validation(dataset=treepredict.Data, k=1, agg=mean, seed=None, scoref=treepredict.entropy, beta=0,
-                     threshold=0):
+def cross_validation(dataset=treepredict.Data, k=1, agg=mean,
+                     seed=None, scoref=treepredict.entropy, beta=0, threshold=0):
+    """
+    Makes the cross_validation process, given a certain dataset and number of folds.
+    """
     if seed:
         random.seed(seed)
     _randomize_dataset(dataset)
@@ -58,10 +75,17 @@ def cross_validation(dataset=treepredict.Data, k=1, agg=mean, seed=None, scoref=
 
 
 def _randomize_dataset(dataset):
+    """
+    Randomizes a list
+    """
     random.shuffle(dataset)
 
 
 def _make_partitions(dataset, folds):
+    """
+    Given a certain dataset, returns a list with folds number of lists,
+    making even partitions of the data
+    """
     partitions = []
     partition_size = int(len(dataset) / folds)
     # print(str(len(dataset)) + " Elements in this dataset")
@@ -78,11 +102,16 @@ def _make_partitions(dataset, folds):
 
 
 def _get_train_test(partitions, current_index):
+    """
+    Given a list of partitions and an index, returns two lists:
+    The train list will have all of the partitions except the one with current_index
+    The test list will only have the current_index partition
+    """
     train = []
     test = []
-    for i in range(len(partitions)):
+    for i, partition in enumerate(partitions):
         if i != current_index:
-            train += partitions[i]
+            train += partition
         else:
-            test += partitions[i]
+            test += partition
     return train, test
