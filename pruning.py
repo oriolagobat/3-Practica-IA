@@ -1,3 +1,6 @@
+"""
+File to implement the pruning method.
+"""
 import sys
 from collections import Counter
 
@@ -5,6 +8,9 @@ from decision_node import DecisionNode
 
 
 def prune(tree: DecisionNode, threshold: float):
+    """
+    Makes the pruning given a certain tree and threshold.
+    """
     if _non_leaf(tree.true_branch):
         prune(tree.true_branch, threshold)
     if _non_leaf(tree.false_branch):
