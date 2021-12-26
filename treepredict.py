@@ -4,7 +4,10 @@ from typing import List, Tuple
 from collections import Counter
 import sys
 
+import pruning
+import evaluation
 from util import Stack
+from decisionNode import DecisionNode
 
 # Used for typing
 Data = List[List]
@@ -113,27 +116,6 @@ def divideset(part: Data, column: int, value: int) -> Tuple[Data, Data]:
     return set1, set2
 
 
-class DecisionNode:
-    def __init__(self, col=-1, value=None, results=None, tb=None, fb=None, goodness=0):
-        """
-        t8: We have 5 member variables:
-        - col is the column index which represents the
-          attribute we use to split the node
-        - value corresponds to the answer that satisfies
-          the question
-        - tb and fb are internal nodes representing the
-          positive and negative answers, respectively
-        - results is a dictionary that stores the result
-          for this branch. Is None except for the leaves
-        """
-        self.col = col
-        self.value = value
-        self.results = results
-        self.tb = tb
-        self.fb = fb
-        self.goodness = goodness
-
-
 def _gain(part: Data, set1: Data, set2: Data, scoref):
     p1 = len(set1) / len(part)
 
@@ -232,7 +214,7 @@ def classify(tree: DecisionNode, row):
     while node.tb is not None and node.fb is not None:
         node = node.tb if _classify_function(tree, row) else node.fb
     prediction = node.results.most_common()[0][0]
-    print("Prediction for row: ", row, "is label", prediction)
+    return prediction
 
 
 def _classify_function(tree: DecisionNode, row):
@@ -282,46 +264,6 @@ def print_data(headers, data):
     print('-' * ((colsize + 1) * len(headers) + 1))
 
 
-def prune(tree: DecisionNode, threshold: float):
-    if _non_leaf(tree.tb):
-        prune(tree.tb, threshold)
-    if _non_leaf(tree.fb):
-        prune(tree.fb, threshold)
-    elif _both_children_leaf(tree):
-        if tree.goodness < threshold:
-            _merge_leaves(tree)
-
-
-def _both_children_leaf(tree: DecisionNode):
-    """
-    Returns true if both of this node children are leaves (Non-None results)
-    """
-    return tree.tb.results is not None and tree.fb.results is not None
-
-
-def _non_leaf(tree: DecisionNode):
-    return tree.results is None
-
-
-def _merge_leaves(tree: DecisionNode):
-    # tree = DecisionNode(results=tree.tb.results + tree.fb.results)
-    tree.col = -1
-    tree.value = None
-    tree.results = _merge_results(tree)
-    tree.tb = None
-    tree.fb = None
-    tree.goodness = 0
-
-
-def _merge_results(tree: DecisionNode):
-    new_results = Counter()
-    merged = tree.tb.results + tree.fb.results
-    new_label = merged.most_common()[0][0]
-    new_count = sum(merged.values())
-    new_results[new_label] = new_count
-    return new_results
-
-
 def main():
     try:
         filename = sys.argv[1]
@@ -341,14 +283,24 @@ def main():
     # train, test = evaluation.train_test_split(data, 0.2)
     # tree = buildtree(train)
     # for row in test:
-    #     classify(tree, row[:-1])
+    #     prediction = classify(tree, row[:-1])
+    #     print("Prediction for row: ", row, "is label", prediction)
 
     """ APARTAT 3 """
-    tree = buildtree(data)
-    print_tree(tree, headers)
-    prune(tree, 0.85)
-    print("\n\n\n")
-    print_tree(tree, headers)
+    # tree = buildtree(data)
+    # print_tree(tree, headers)
+    # pruning.prune(tree, 0.85)
+    # print("\n\n\n")
+    # print_tree(tree, headers)
+
+    """ APARTAT 4 """
+    train, test = evaluation.train_test_split(data, 0.2)
+    tree = buildtree(train)
+    print("Data split between train and test with 0.2 test size")
+    train_accuracy = evaluation.get_accuracy(tree, train)
+    print("Accuracy with training data is " + "{:.2f}".format(train_accuracy) + " %")
+    test_accuracy = evaluation.get_accuracy(tree, test)
+    print("Accuracy with testing data is " + "{:.2f}".format(test_accuracy) + " %")
 
 
 if __name__ == "__main__":

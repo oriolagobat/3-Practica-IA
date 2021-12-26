@@ -53,7 +53,7 @@ class BiCluster:
         self.right = right
         self.vec = vec
         self.id = id
-        self.distance = distance
+        self.distance = dist
 
 
 def hcluster(rows, distance=pearson):
