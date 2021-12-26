@@ -273,37 +273,87 @@ def main():
     headers, data = read(filename)
 
     """ APARTAT 1 """
-    # tree = buildtree(data)
-    # print_tree(tree, headers)
-    # print("\n\n\n")
-    # it_tree = iterative_buildtree(data)
-    # print_tree(it_tree, headers)
+    _build_tree_iterative(data, headers)
 
     """ APARTAT 2, we get the rows to predict by dividing dataset into train and test """
-    # train, test = evaluation.train_test_split(data, 0.2)
-    # tree = buildtree(train)
-    # for row in test:
-    #     prediction = classify(tree, row[:-1])
-    #     print("Prediction for row: ", row, "is label", prediction)
+    _function_classify(data)
 
     """ APARTAT 3 """
-    # tree = buildtree(data)
-    # print_tree(tree, headers)
-    # pruning.prune(tree, 0.85)
-    # print("\n\n\n")
-    # print_tree(tree, headers)
+    _tree_pruning(data, headers)
 
     """ APARTAT 4 """
-    # train, test = evaluation.train_test_split(data, 0.2)
-    # tree = buildtree(train)
-    # print("Data split between train and test with 0.2 test size")
-    # train_accuracy = evaluation.get_accuracy(tree, train)
-    # print("Accuracy with training data is " + "{:.2f}".format(train_accuracy * 100) + " %")
-    # test_accuracy = evaluation.get_accuracy(tree, test)
-    # print("Accuracy with testing data is " + "{:.2f}".format(test_accuracy * 100) + " %")
+    _test_performance(data)
 
     """ APARTAT 5 """
-    evaluation.cross_validation(dataset=data, k=5)
+    _cross_validation(data)
+
+    """ APARTAT 6, run with iris.csv """
+    _find_optimal_threshold(data)
+
+
+""" SCHOOL TASKS, IGNORE AND RUN FROM MAIN """
+
+
+def _build_tree_iterative(data, headers):
+    print("******* APARTAT 1 ******")
+    tree = buildtree(data)
+    print_tree(tree, headers)
+    print("\n\n\n")
+    it_tree = iterative_buildtree(data)
+    print_tree(it_tree, headers)
+
+
+def _function_classify(data):
+    train, test = evaluation.train_test_split(data, 0.2)
+    tree = buildtree(train)
+    for row in test:
+        prediction = classify(tree, row[:-1])
+        print("Prediction for row: ", row, "is label", prediction)
+
+
+def _tree_pruning(data, headers):
+    tree = buildtree(data)
+    print_tree(tree, headers)
+    pruning.prune(tree, 0.85)
+    print("\n\n\n")
+    print_tree(tree, headers)
+
+
+def _test_performance(data):
+    train, test = evaluation.train_test_split(data, 0.2)
+    tree = buildtree(train)
+    print("Data split between train and test with 0.2 test size")
+    train_accuracy = evaluation.get_accuracy(tree, train)
+    print("Accuracy with training data is " + "{:.2f}".format(train_accuracy * 100) + " %")
+    test_accuracy = evaluation.get_accuracy(tree, test)
+    print("Accuracy with testing data is " + "{:.2f}".format(test_accuracy * 100) + " %")
+
+
+def _cross_validation(data):
+    score = evaluation.cross_validation(dataset=data, k=5)
+    print("Score obtained with 5 folds, no beta and no threshold is: " + "{:.2f}".format(score))
+
+
+def _find_optimal_threshold(data):
+    threshold_results = []
+    train, test = evaluation.train_test_split(data, 0.2)
+
+    no_threshold = evaluation.cross_validation(dataset=train, k=5)
+    mid_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.5)
+    three_quarters_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.75)
+    accuracy_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=evaluation.get_accuracy)
+
+    threshold_results += [no_threshold] + [mid_threshold] + [three_quarters_threshold] + [accuracy_threshold]
+    best_threshold = max(threshold_results)
+    print("Best threshold found is: " + "{:.2f}".format(best_threshold))
+
+    best_threshold_model = buildtree(data)
+    pruning.prune(best_threshold_model, best_threshold)
+    best_threshold_accuracy = evaluation.get_accuracy(best_threshold_model, test)
+    print(
+        "Accuracy found with test dataset, on tree trained with training dataset and pruned with the best threshold "
+        "found is: "
+        + "{:.2f}".format(best_threshold_accuracy))
 
 
 if __name__ == "__main__":

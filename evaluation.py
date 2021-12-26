@@ -1,6 +1,7 @@
 import random
 from typing import Union, List
 
+import pruning
 import treepredict
 from decisionNode import DecisionNode
 
@@ -37,7 +38,6 @@ def mean(values: List[float]):
     return sum(values) / len(values)
 
 
-# AAAAAAAAAAAAAAAAAAAAA REMOVE HEADERS AAAAAAAAAAAAAAAAAAAAA
 def cross_validation(dataset=treepredict.Data, k=1, agg=mean, seed=None, scoref=treepredict.entropy, beta=0,
                      threshold=0):
     if seed:
@@ -48,10 +48,13 @@ def cross_validation(dataset=treepredict.Data, k=1, agg=mean, seed=None, scoref=
     for i in range(k):
         train, test = _get_train_test(partitions, i)
         model = treepredict.buildtree(train, scoref, beta)
+        if threshold == get_accuracy:
+            threshold = get_accuracy(model, train)
+        pruning.prune(model, threshold)
         fold_score = get_accuracy(model, test)
         scores += [fold_score]
     final_score = agg(scores)
-    print(final_score)
+    return final_score
 
 
 def _randomize_dataset(dataset):
