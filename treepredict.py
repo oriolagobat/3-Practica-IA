@@ -294,13 +294,16 @@ def main():
     # print_tree(tree, headers)
 
     """ APARTAT 4 """
-    train, test = evaluation.train_test_split(data, 0.2)
-    tree = buildtree(train)
-    print("Data split between train and test with 0.2 test size")
-    train_accuracy = evaluation.get_accuracy(tree, train)
-    print("Accuracy with training data is " + "{:.2f}".format(train_accuracy) + " %")
-    test_accuracy = evaluation.get_accuracy(tree, test)
-    print("Accuracy with testing data is " + "{:.2f}".format(test_accuracy) + " %")
+    # train, test = evaluation.train_test_split(data, 0.2)
+    # tree = buildtree(train)
+    # print("Data split between train and test with 0.2 test size")
+    # train_accuracy = evaluation.get_accuracy(tree, train)
+    # print("Accuracy with training data is " + "{:.2f}".format(train_accuracy * 100) + " %")
+    # test_accuracy = evaluation.get_accuracy(tree, test)
+    # print("Accuracy with testing data is " + "{:.2f}".format(test_accuracy * 100) + " %")
+
+    """ APARTAT 5 """
+    evaluation.cross_validation(dataset=data, k=5)
 
 
 if __name__ == "__main__":

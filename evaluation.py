@@ -30,12 +30,56 @@ def get_accuracy(tree: DecisionNode, dataset):
     for row in dataset:
         if treepredict.classify(tree, row[:-1]) == row[-1]:
             correct += 1
-    return (correct / len(dataset)) * 100
+    return correct / len(dataset)
 
 
 def mean(values: List[float]):
     return sum(values) / len(values)
 
 
-def cross_validation(dataset, k, agg, seed, scoref, beta, threshold):
-    raise NotImplementedError
+# AAAAAAAAAAAAAAAAAAAAA REMOVE HEADERS AAAAAAAAAAAAAAAAAAAAA
+def cross_validation(dataset=treepredict.Data, k=1, agg=mean, seed=None, scoref=treepredict.entropy, beta=0,
+                     threshold=0):
+    if seed:
+        random.seed(seed)
+    _randomize_dataset(dataset)
+    partitions = _make_partitions(dataset, k)
+    scores = []
+    for i in range(k):
+        train, test = _get_train_test(partitions, i)
+        model = treepredict.buildtree(train, scoref, beta)
+        fold_score = get_accuracy(model, test)
+        scores += [fold_score]
+    final_score = agg(scores)
+    print(final_score)
+
+
+def _randomize_dataset(dataset):
+    random.shuffle(dataset)
+
+
+def _make_partitions(dataset, folds):
+    partitions = []
+    partition_size = int(len(dataset) / folds)
+    # print(str(len(dataset)) + " Elements in this dataset")
+    # print(str(folds) + " Folds for this dataset")
+    # print("Folds will be of size " + str(partition_size) )
+    for i in range(folds):
+        if i != folds - 1:  # Not the final partition
+            sub_list = dataset[i * partition_size:i * partition_size + partition_size]
+            partitions += [sub_list]
+        else:  # Final partition, append all the remaining data
+            sub_list = dataset[i * partition_size:]
+            partitions += [sub_list]
+    return partitions
+
+
+def _get_train_test(partitions, current_index):
+    train = []
+    test = []
+    for i in range(len(partitions)):
+        if i != current_index:
+            train += partitions[i]
+        else:
+            test += partitions[i]
+    return train, test
