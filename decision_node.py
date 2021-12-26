@@ -1,5 +1,14 @@
+"""
+These file will help by abstracting the DecisionNode class
+"""
+
+
 class DecisionNode:
-    def __init__(self, col=-1, value=None, results=None, tb=None, fb=None, goodness=0):
+    """
+    Represents a DecisionNode, a tree, that compresses all the trees below him.
+    """
+    def __init__(self, col=-1, value=None, results=None,
+                 true_branch=None, false_branch=None, goodness=0):
         """
         t8: We have 5 member variables:
         - col is the column index which represents the
@@ -14,6 +23,6 @@ class DecisionNode:
         self.col = col
         self.value = value
         self.results = results
-        self.tb = tb
-        self.fb = fb
+        self.true_branch = true_branch
+        self.false_branch = false_branch
         self.goodness = goodness

@@ -3,7 +3,7 @@ from typing import Union, List
 
 import pruning
 import treepredict
-from decisionNode import DecisionNode
+from decision_node import DecisionNode
 
 
 def train_test_split(dataset, test_size: Union[float, int], seed=None):

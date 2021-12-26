@@ -7,7 +7,7 @@ import sys
 import pruning
 import evaluation
 from util import Stack
-from decisionNode import DecisionNode
+from decision_node import DecisionNode
 
 # Used for typing
 Data = List[List]
@@ -144,7 +144,7 @@ def buildtree(part: Data, scoref=entropy, beta=0):
         return DecisionNode(results=unique_counts(part), goodness=best_gain)
 
     return DecisionNode(col=best_criteria[0], value=best_criteria[1],
-                        tb=buildtree(best_sets[0]), fb=buildtree(best_sets[1]), goodness=best_gain)
+                        true_branch=buildtree(best_sets[0]), false_branch=buildtree(best_sets[1]), goodness=best_gain)
 
 
 def _search_best_params(part: Data, scoref=entropy):
@@ -203,7 +203,7 @@ def iterative_buildtree(part: Data, scoref=entropy, beta=0):
             tb = node_stack.pop()  # True tree
             fb = node_stack.pop()  # False tree
             node_stack.push(DecisionNode(col=criteria[0], value=criteria[1],
-                                         tb=tb, fb=fb, goodness=goodness))
+                                         true_branch=tb, false_branch=fb, goodness=goodness))
 
             if len(data) == len(part):  # If root node
                 return node_stack.pop()
@@ -211,8 +211,8 @@ def iterative_buildtree(part: Data, scoref=entropy, beta=0):
 
 def classify(tree: DecisionNode, row):
     node = tree
-    while node.tb is not None and node.fb is not None:
-        node = node.tb if _classify_function(tree, row) else node.fb
+    while node.true_branch is not None and node.false_branch is not None:
+        node = node.true_branch if _classify_function(tree, row) else node.false_branch
     prediction = node.results.most_common()[0][0]
     return prediction
 
@@ -240,9 +240,9 @@ def print_tree(tree, headers=None, indent=""):
 
         # Print the branches
         print(f"{indent}T->")
-        print_tree(tree.tb, headers, indent + "  ")
+        print_tree(tree.true_branch, headers, indent + "  ")
         print(f"{indent}F->")
-        print_tree(tree.fb, headers, indent + "  ")
+        print_tree(tree.false_branch, headers, indent + "  ")
 
 
 def print_data(headers, data):
@@ -297,13 +297,16 @@ def main():
 def _build_tree_iterative(data, headers):
     print("******* APARTAT 1 ******")
     tree = buildtree(data)
+    print("**** RECURSIVE ****")
     print_tree(tree, headers)
-    print("\n\n\n")
+    print("\n\n")
+    print("**** ITERATIVE ****")
     it_tree = iterative_buildtree(data)
     print_tree(it_tree, headers)
 
 
 def _function_classify(data):
+    print("\n\n******* APARTAT 2 ******")
     train, test = evaluation.train_test_split(data, 0.2)
     tree = buildtree(train)
     for row in test:
@@ -312,14 +315,18 @@ def _function_classify(data):
 
 
 def _tree_pruning(data, headers):
+    print("\n\n******* APARTAT 3 ******")
     tree = buildtree(data)
+    print("**** NO PRUNING ****")
     print_tree(tree, headers)
     pruning.prune(tree, 0.85)
-    print("\n\n\n")
+    print("\n\n")
+    print("**** PRUNING ****")
     print_tree(tree, headers)
 
 
 def _test_performance(data):
+    print("\n\n******* APARTAT 4 ******")
     train, test = evaluation.train_test_split(data, 0.2)
     tree = buildtree(train)
     print("Data split between train and test with 0.2 test size")
@@ -330,11 +337,13 @@ def _test_performance(data):
 
 
 def _cross_validation(data):
+    print("\n\n******* APARTAT 5 ******")
     score = evaluation.cross_validation(dataset=data, k=5)
     print("Score obtained with 5 folds, no beta and no threshold is: " + "{:.2f}".format(score))
 
 
 def _find_optimal_threshold(data):
+    print("\n\n******* APARTAT 6 ******")
     threshold_results = []
     train, test = evaluation.train_test_split(data, 0.2)
 
