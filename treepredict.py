@@ -369,16 +369,17 @@ def _find_optimal_threshold(data):
     threshold_results += [no_threshold] + [mid_threshold] \
                          + [three_quarters_threshold] + [accuracy_threshold]
     best_threshold = max(threshold_results)
+    # best_threshold = 0.5
     print("Best threshold found is: " + "{:.2f}".format(best_threshold))
 
-    best_threshold_model = buildtree(data)
+    best_threshold_model = buildtree(train)
     pruning.prune(best_threshold_model, best_threshold)
     best_threshold_accuracy = evaluation.get_accuracy(best_threshold_model, test)
     print(
         "Accuracy found with test dataset, "
         "on tree trained with training dataset and pruned with the best threshold "
         "found is: "
-        + "{:.2f}".format(best_threshold_accuracy))
+        + "{:.2f}".format(best_threshold_accuracy * 100) + " %")
 
 
 if __name__ == "__main__":

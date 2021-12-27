@@ -65,8 +65,10 @@ def cross_validation(dataset=treepredict.Data, k=1, agg=mean,
     for i in range(k):
         train, test = _get_train_test(partitions, i)
         model = treepredict.buildtree(train, scoref, beta)
+
         if threshold == get_accuracy:
             threshold = get_accuracy(model, train)
+
         pruning.prune(model, threshold)
         fold_score = get_accuracy(model, test)
         scores += [fold_score]
@@ -88,9 +90,6 @@ def _make_partitions(dataset, folds):
     """
     partitions = []
     partition_size = int(len(dataset) / folds)
-    # print(str(len(dataset)) + " Elements in this dataset")
-    # print(str(folds) + " Folds for this dataset")
-    # print("Folds will be of size " + str(partition_size) )
     for i in range(folds):
         if i != folds - 1:  # Not the final partition
             sub_list = dataset[i * partition_size:i * partition_size + partition_size]
