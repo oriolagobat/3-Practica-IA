@@ -35,19 +35,10 @@ def _merge_leaves(tree: DecisionNode):
     # tree = DecisionNode(results=tree.tb.results + tree.fb.results)
     tree.col = -1
     tree.value = None
-    tree.results = _merge_results(tree)
+    tree.results = tree.true_branch.results + tree.false_branch.results
     tree.true_branch = None
     tree.false_branch = None
     tree.goodness = 0
-
-
-def _merge_results(tree: DecisionNode):
-    new_results = Counter()
-    merged = tree.true_branch.results + tree.false_branch.results
-    new_label = merged.most_common()[0][0]
-    new_count = sum(merged.values())
-    new_results[new_label] = new_count
-    return new_results
 
 
 if __name__ == '__main__':
