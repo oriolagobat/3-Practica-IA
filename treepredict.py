@@ -217,11 +217,18 @@ def classify(tree: DecisionNode, row):
     """
     Returns the prediction for a certain row given a tree.
     """
-    node = tree
-    while node.true_branch is not None and node.false_branch is not None:
-        node = node.true_branch if _classify_function(tree, row) else node.false_branch
-    prediction = node.results.most_common()[0][0]
-    return prediction
+
+    # RECURSIVE WAY
+
+    # if tree.results is not None:
+    #     return tree.results.most_common()[0][0]
+    # return classify(tree.true_branch, row) if _classify_function(tree, row) else classify(tree.false_branch, row)
+
+    # ITERATIVE WAY
+    
+    while tree.results is None:
+        tree = tree.true_branch if _classify_function(tree, row) else tree.false_branch
+    return tree.results.most_common()[0][0]
 
 
 def _classify_function(tree: DecisionNode, row):
