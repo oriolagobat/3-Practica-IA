@@ -376,7 +376,7 @@ def _find_optimal_threshold(data):
     threshold_results += [no_threshold] + [mid_threshold] \
                          + [three_quarters_threshold] + [accuracy_threshold]
     best_threshold = max(threshold_results)
-    print("Best threshold found is: " + "{:.2f}".format(best_threshold))
+    print("Accuracy found with the best threshold is: " + "{:.2f}".format(best_threshold))
 
     best_threshold_model = buildtree(train)
     pruning.prune(best_threshold_model, best_threshold)
