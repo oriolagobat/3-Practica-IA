@@ -111,19 +111,40 @@ def printclust(clust: BiCluster, labels=None, n=0):
         printclust(clust.right, labels=labels, n=n + P1)
 
 
+
+# ......... K-MEANS ..........
 class KMeans:
     def __init__(self, rows, distance=euclidean_squared, k=4):
         self.rows = rows
         self.distance = distance
         self.k = k
+        self.clusters = None
 
+    def find_best_startconfig(self, data, iterations=10, bestresult=None):
+        """
+        Applies KMeans with a restarting policy and stores the best result based on
+        the total distance of each item to it's closest centroid.
+        """
+        for i in range(iterations):
+            # Find clusters
+            initial_centroids = self.init_centroids()
+            centroids, totaldistance = self.find_clusters(initial_centroids)
+
+            # If it's the first/best result, store it
+            if bestresult is None or totaldistance > bestresult[1]:
+                bestresult = (centroids, totaldistance)
+
+        return bestresult
 
     def init_centroids(self):
-        # Determine the minimum and maximum values for each point
+        """
+        Initializes k centroids with random values.
+        """
+        # Determine the minimum and maximum values for each attribute
         ranges = [(min([row[i] for row in self.rows]),
         max([row[i] for row in self.rows])) for i in range(len(self.rows[0]))]
 
-        # Create k randomly placed centroids
+        # Create k randomly placed centroids within the ranges found
         centroids = [[random.random()*(ranges[i][1]-ranges[i][0])+ranges[i][0]
         for i in range(len(self.rows[0]))] for j in range(self.k)]
 
@@ -131,9 +152,13 @@ class KMeans:
 
 
     def find_clusters(self, centroids, iterations=100, lastmatches=None):
-
+        """
+        Applies given iterations of cluster finding.
+        """
         # Update clusters on each iteration
         for t in range(iterations):
+            #print("Iteració %i" % t)
+            #print(centroids[0][0])
             distances, matches = self._find_closest_centroids(centroids)
 
             # If the results haven't changed, stop
@@ -143,12 +168,14 @@ class KMeans:
             # Update centroid positions
             self._move_centroids(centroids, matches)
 
+        self.clusters = matches
         return (centroids, sum(distances))
 
 
-
     def _find_closest_centroids(self, centroids):
-
+        """
+        Finds closest centroids to each item.
+        """
         # Initialize lists
         bestmatches = [[] for i in range(len(centroids))]
         bestdistances = [0 for i in range(len(self.rows))]
@@ -177,7 +204,9 @@ class KMeans:
 
     
     def _move_centroids(self, centroids, matches):
-
+        """
+        Updates each centroid's position.
+        """
         # For each centroid
         for i in range(len(centroids)):
             avgs = [0.0] * len(self.rows[0])
@@ -198,74 +227,47 @@ class KMeans:
 
                     # Move centroid
                     centroids[i]=avgs
+    
 
-
-
-# ......... K-MEANS ..........
-def kcluster(rows, distance=euclidean_squared, k=4):
-
-    # Determine the minimum and maximum values for each point
-    ranges = [(min([row[i] for row in rows]),
-    max([row[i] for row in rows])) for i in range(len(rows[0]))]
-
-    # Create k randomly placed centroids
-    clusters = [[random.random()*(ranges[i][1]-ranges[i][0])+ranges[i][0]
-    for i in range(len(rows[0]))] for j in range(k)]
-
-    lastmatches=None
-    for t in range(100):
-        # print("iteracio: %i" % t, file=sys.stderr)
-        bestmatches = [[] for i in range(k)]
-        bestdistances = [0 for i in range(len(rows))]
-
-
-        # Find which centroid is the closest for each row
-        for j in range(len(rows)):
-            row = rows[j]
-            bestmatch = 0
-            bestdistance = distance(clusters[0], row)
-            for i in range(k):
-                d = distance(clusters[i],row)
-                # print("Distancia a bestmatch: %i Distancia a K%i: %i" % (distance(clusters[bestmatch],row), i, d), file=sys.stderr)
-                if d > distance(clusters[bestmatch],row): 
-                    bestmatch=i
-                    bestdistance=d
-            bestdistances[j] = bestdistance
-            bestmatches[bestmatch].append(j)
-
-        # If the results are the same as last time, done
-        if bestmatches == lastmatches: break
-        lastmatches = bestmatches
-
-        # Move the centroids to the average of their members
-        for i in range(k):
-            avgs=[0.0]*len(rows[0])
-            if len(bestmatches[i]) > 0:
-                for rowid in bestmatches[i]:
-                    for m in range(len(rows[rowid])):
-                        avgs[m]+=rows[rowid][m]
-                for j in range(len(avgs)):
-                    avgs[j]/=len(bestmatches[i])
-                    clusters[i]=avgs
-        # print(bestmatches, file=sys.stderr)
-    return (clusters, sum(bestdistances))
+def test_different_kvalues(data, begin, end, incr, restarts, totaldistances=[]):
+    """
+    Given dataset and a range of k values and a restart policy value, gives 
+    back the kmeans total distance for each value. Used for analisis purposes.
+    """
+    for i in range(begin, end, incr):
+        kmeans = KMeans(data, k=i)
+        _, totaldistance = kmeans.find_best_startconfig(data, iterations=restarts)
+        totaldistances.append(totaldistance)
+    return totaldistances
 
 
 def main():
+    # Parse input
     try:
         filename = sys.argv[1]
     except IndexError:
         filename = "blogdata.txt"
-
     row_names, headers, data = readfile(filename)
-    oldbestmatches = kcluster(data)
 
+    # APARTAT 1 (t9)
     kmeans = KMeans(data)
-    centroids = kmeans.init_centroids()
-    bestmatches = kmeans.find_clusters(centroids)
+    initial_centroids = kmeans.init_centroids()
+    centroids, totaldistance = kmeans.find_clusters(initial_centroids)
+    print("[Apartat 1] Distància total als centroides: %2.3f\n" % totaldistance)
 
-    print(bestmatches[1])
-    print(oldbestmatches[1])
+    # To check the resulting clusters
+    # print(kmeans.clusters)
+
+    # APARTAT 2 (t11)
+    restarts = 10
+    kmeans = KMeans(data)
+    centroids, totaldistance = kmeans.find_best_startconfig(data, iterations=restarts)
+    print("[Apartat 2] (%i Restarts) Distància total als centroides: %2.3f\n" % (restarts, totaldistance))
+
+    # APARTAT 3 (t10)
+    result = test_different_kvalues(data, 1, 5, 1, restarts)
+    for i in range(len(result)):
+        print("[Apartat 3] (%i Clusters - %i Restarts) Distància total als centroides: %2.3f" % (i + 1, restarts, result[i]))
 
 
 if __name__ == "__main__":
