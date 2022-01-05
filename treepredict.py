@@ -367,13 +367,13 @@ def _find_optimal_threshold(data):
     threshold_results = []
     train, test = evaluation.train_test_split(data, 0.2)
 
-    no_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.25)
+    one_quarter_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.25)
     mid_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.5)
     three_quarters_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.75)
     accuracy_threshold = evaluation.cross_validation(
         dataset=train, k=5, threshold=evaluation.get_accuracy)
 
-    threshold_results += [no_threshold] + [mid_threshold] \
+    threshold_results += [one_quarter_threshold] + [mid_threshold] \
                          + [three_quarters_threshold] + [accuracy_threshold]
     best_threshold = min(threshold_results)
     print("Accuracy found with the best threshold is: " + "{:.2f}".format(best_threshold))
