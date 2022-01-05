@@ -7,6 +7,7 @@ class DecisionNode:
     """
     Represents a DecisionNode, a tree, that compresses all the trees below him.
     """
+
     def __init__(self, col=-1, value=None, results=None,
                  true_branch=None, false_branch=None, goodness=0):
         """

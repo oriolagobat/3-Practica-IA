@@ -3,6 +3,7 @@ from math import sqrt
 import random
 import sys
 
+
 def readfile(filename: str) -> Tuple[List, List, List]:
     """
     Parses input file.
@@ -64,6 +65,7 @@ class KMeans:
     """
     Represents k-means algorithm.
     """
+
     def __init__(self, rows, distance=euclidean_squared, k=4):
         self.rows = rows
         self.distance = distance
@@ -92,14 +94,13 @@ class KMeans:
         """
         # Determine the minimum and maximum values for each attribute
         ranges = [(min([row[i] for row in self.rows]),
-        max([row[i] for row in self.rows])) for i in range(len(self.rows[0]))]
+                   max([row[i] for row in self.rows])) for i in range(len(self.rows[0]))]
 
         # Create k randomly placed centroids within the ranges found
-        centroids = [[random.random()*(ranges[i][1]-ranges[i][0])+ranges[i][0]
-        for i in range(len(self.rows[0]))] for j in range(self.k)]
+        centroids = [[random.random() * (ranges[i][1] - ranges[i][0]) + ranges[i][0]
+                      for i in range(len(self.rows[0]))] for j in range(self.k)]
 
         return centroids
-
 
     def find_clusters(self, centroids, iterations=100, lastmatches=None):
         """
@@ -107,8 +108,8 @@ class KMeans:
         """
         # Update clusters on each iteration
         for _ in range(iterations):
-            #print("Iteració %i" % t)
-            #print(centroids[0][0])
+            # print("Iteració %i" % t)
+            # print(centroids[0][0])
             distances, matches = self._find_closest_centroids(centroids)
 
             # If the results haven't changed, stop
@@ -121,7 +122,6 @@ class KMeans:
 
         self.clusters = matches
         return (centroids, sum(distances))
-
 
     def _find_closest_centroids(self, centroids):
         """
@@ -140,10 +140,10 @@ class KMeans:
 
             # Find the closest centroid
             for centroid_id, centroid in enumerate(centroids):
-                distance = self.distance(centroid,row)
-                if distance > self.distance(centroids[bestmatch],row):
-                    bestmatch=centroid_id
-                    bestdistance=distance
+                distance = self.distance(centroid, row)
+                if distance > self.distance(centroids[bestmatch], row):
+                    bestmatch = centroid_id
+                    bestdistance = distance
 
             # Store results
             bestdistances[rowid] = bestdistance
@@ -151,14 +151,13 @@ class KMeans:
 
         return (bestdistances, bestmatches)
 
-
     def _move_centroids(self, centroids, matches):
         """
         Updates each centroid's position.
         """
         # For each centroid
         for centroid_id, _ in enumerate(centroids):
-        #for i in range(len(centroids)):
+            # for i in range(len(centroids)):
             avgs = [0.0] * len(self.rows[0])
 
             # That has at least one item
@@ -173,10 +172,10 @@ class KMeans:
 
                 # For each attribute get the mean value
                 for j in range(len(avgs)):
-                    avgs[j]/=len(matches[centroid_id])
+                    avgs[j] /= len(matches[centroid_id])
 
                     # Move centroid
-                    centroids[centroid_id]=avgs
+                    centroids[centroid_id] = avgs
 
 
 def test_different_kvalues(data, begin, end, incr, restarts):
@@ -184,7 +183,7 @@ def test_different_kvalues(data, begin, end, incr, restarts):
     Given dataset and a range of k values and a restart policy value, gives
     back the kmeans total distance for each value. Used for analisis purposes.
     """
-    totaldistances  = []
+    totaldistances = []
     for i in range(begin, end, incr):
         kmeans = KMeans(data, k=i)
         _, totaldistance = kmeans.find_best_startconfig(iterations=restarts)
@@ -214,13 +213,13 @@ def main():
     kmeans = KMeans(data)
     centroids, totaldistance = kmeans.find_best_startconfig(iterations=restarts)
     print("[Apartat 2] (%i Restarts) Distància total als centroides: %2.3f\n"
-        % (restarts, totaldistance))
+          % (restarts, totaldistance))
 
     # APARTAT 3 (t10)
     result = test_different_kvalues(data, 1, 5, 1, restarts)
     for i in range(len(result)):
         print("[Apartat 3] (%i Clusters - %i Restarts) Distància total als centroides: %2.3f"
-            % (i + 1, restarts, result[i]))
+              % (i + 1, restarts, result[i]))
 
 
 if __name__ == "__main__":

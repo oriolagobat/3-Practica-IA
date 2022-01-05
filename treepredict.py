@@ -225,7 +225,7 @@ def classify(tree: DecisionNode, row):
     # return classify(tree.true_branch, row) if _classify_function(tree, row) else classify(tree.false_branch, row)
 
     # ITERATIVE WAY
-    
+
     while tree.results is None:
         tree = tree.true_branch if _classify_function(tree, row) else tree.false_branch
     return tree.results.most_common()[0][0]
