@@ -15,7 +15,7 @@ def prune(tree: DecisionNode, threshold: float):
         prune(tree.true_branch, threshold)
     if _non_leaf(tree.false_branch):
         prune(tree.false_branch, threshold)
-    elif _both_children_leaf(tree):
+    if _both_children_leaf(tree):
         if tree.goodness < threshold:
             _merge_leaves(tree)
 
@@ -32,7 +32,6 @@ def _non_leaf(tree: DecisionNode):
 
 
 def _merge_leaves(tree: DecisionNode):
-    # tree = DecisionNode(results=tree.tb.results + tree.fb.results)
     tree.col = -1
     tree.value = None
     tree.results = tree.true_branch.results + tree.false_branch.results
