@@ -66,9 +66,6 @@ def cross_validation(dataset=treepredict.Data, k=1, agg=mean,
         train, test = _get_train_test(partitions, i)
         model = treepredict.buildtree(train, scoref, beta)
 
-        if threshold == get_accuracy:
-            threshold = get_accuracy(model, train)
-
         pruning.prune(model, threshold)
         fold_score = get_accuracy(model, test)
         scores += [fold_score]

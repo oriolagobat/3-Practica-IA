@@ -367,16 +367,20 @@ def _find_optimal_threshold(data):
     threshold_results = []
     train, test = evaluation.train_test_split(data, 0.2)
 
-    one_quarter_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.25)
-    mid_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.5)
-    three_quarters_threshold = evaluation.cross_validation(dataset=train, k=5, threshold=0.75)
-    accuracy_threshold = evaluation.cross_validation(
-        dataset=train, k=5, threshold=evaluation.get_accuracy)
+    """ Change if you want to try to find the optimal threshold with more iterations"""
+    """ There will always be one more iteration than the one detailed here"""
+    iterations_minus_one = 10
 
-    threshold_results += [one_quarter_threshold] + [mid_threshold] \
-                         + [three_quarters_threshold] + [accuracy_threshold]
-    best_threshold = min(threshold_results)
-    print("Accuracy found with the best threshold is: " + "{:.2f}".format(best_threshold))
+    segment_division = 1 / iterations_minus_one
+    for i in range(iterations_minus_one):
+        threshold = segment_division * i
+        threshold_results += [evaluation.cross_validation(dataset=train, k=5, threshold=threshold)]
+
+    # We try one last iteration, with maximum threshold
+    threshold_results += [evaluation.cross_validation(dataset=train, k=5, threshold=1)]
+
+    best_threshold = max(threshold_results)
+    print("Best threshold found is: " + "{:.2f}".format(best_threshold))
 
     best_threshold_model = buildtree(train)
     pruning.prune(best_threshold_model, best_threshold)
