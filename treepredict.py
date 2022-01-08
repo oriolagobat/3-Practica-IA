@@ -2,6 +2,7 @@
 """
 File that implements the construction of a decision tree and runs the main tasks of the project
 """
+import random
 from math import log
 from typing import List, Tuple
 from collections import Counter
@@ -207,7 +208,8 @@ def iterative_buildtree(part: Data, scoref=entropy, beta=0):
             true_branch = node_stack.pop()  # True tree
             false_branch = node_stack.pop()  # False tree
             node_stack.push(DecisionNode(col=criteria[0], value=criteria[1],
-                                         true_branch=true_branch, false_branch=false_branch, goodness=goodness))
+                                         true_branch=true_branch, false_branch=false_branch,
+                                         goodness=goodness))
 
             if len(data) == len(part):  # If root node
                 return node_stack.pop()
@@ -221,14 +223,19 @@ def classify(tree: DecisionNode, row):
     # RECURSIVE WAY
 
     # if tree.results is not None:
-    #     return tree.results.most_common()[0][0]
+    #     maximum = max(tree.results.values())
+    #     labels = [k for k, v in tree.results.items() if v == maximum]
+    #     return random.choice(labels)
     # return classify(tree.true_branch, row) if _classify_function(tree, row) else classify(tree.false_branch, row)
 
     # ITERATIVE WAY
 
     while tree.results is None:
         tree = tree.true_branch if _classify_function(tree, row) else tree.false_branch
-    return tree.results.most_common()[0][0]
+
+    maximum = max(tree.results.values())
+    labels = [k for k, v in tree.results.items() if v == maximum]
+    return random.choice(labels)
 
 
 def _classify_function(tree: DecisionNode, row):
@@ -379,15 +386,16 @@ def _find_optimal_threshold(data):
             best_threshold = (threshold, result)
 
     print(
-        "Best threshold found is: " + str(best_threshold[0]) + ", with an accuracy of " + "{:.2f}".format(
-            best_threshold[1]))
+        "Best threshold found is: " + str(best_threshold[0]) +
+        ", with an accuracy of " + "{:.2f}".format(best_threshold[1]))
 
     best_threshold_model = buildtree(train)
 
     not_prunned_accuracy = evaluation.get_accuracy(best_threshold_model, test)
     print(
-        "Accuracy found with test dataset on tree trained with training dataset and not prunned yet is: " + "{:.2f}".format(
-            not_prunned_accuracy * 100) + " %")
+        "Accuracy found with test dataset on tree "
+        "trained with training dataset and not prunned yet is: "
+        + "{:.2f}".format(not_prunned_accuracy * 100) + " %")
 
     pruning.prune(best_threshold_model, best_threshold[0])
     best_threshold_accuracy = evaluation.get_accuracy(best_threshold_model, test)
@@ -396,6 +404,7 @@ def _find_optimal_threshold(data):
         "on tree trained with training dataset and pruned with the best threshold "
         "found is: "
         + "{:.2f}".format(best_threshold_accuracy * 100) + " %")
+
 
 if __name__ == "__main__":
     main()

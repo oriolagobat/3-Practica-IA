@@ -69,6 +69,7 @@ def cross_validation(dataset=treepredict.Data, k=1, agg=mean,
         pruning.prune(model, threshold)
         fold_score = get_accuracy(model, test)
         scores += [fold_score]
+
     final_score = agg(scores)
     return final_score
 
