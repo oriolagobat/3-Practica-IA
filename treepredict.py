@@ -226,7 +226,8 @@ def classify(tree: DecisionNode, row):
     #     maximum = max(tree.results.values())
     #     labels = [k for k, v in tree.results.items() if v == maximum]
     #     return random.choice(labels)
-    # return classify(tree.true_branch, row) if _classify_function(tree, row) else classify(tree.false_branch, row)
+    # return classify(tree.true_branch, row) if _classify_function(tree, row) \
+    #     else classify(tree.false_branch, row)
 
     # ITERATIVE WAY
 
