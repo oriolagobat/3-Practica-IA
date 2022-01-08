@@ -364,7 +364,7 @@ def _cross_validation(data):
 
 def _find_optimal_threshold(data):
     print("\n\n******* APARTAT 6 ******")
-    threshold_results = []
+    best_threshold = (None, -1)
     train, test = evaluation.train_test_split(data, 0.2)
 
     """ Change if you want to try to find the optimal threshold with more iterations"""
@@ -372,25 +372,30 @@ def _find_optimal_threshold(data):
     iterations_minus_one = 10
 
     segment_division = 1 / iterations_minus_one
-    for i in range(iterations_minus_one):
+    for i in range(iterations_minus_one + 1):
         threshold = segment_division * i
-        threshold_results += [evaluation.cross_validation(dataset=train, k=5, threshold=threshold)]
+        result = evaluation.cross_validation(dataset=train, k=5, threshold=threshold)
+        if result > best_threshold[1]:
+            best_threshold = (threshold, result)
 
-    # We try one last iteration, with maximum threshold
-    threshold_results += [evaluation.cross_validation(dataset=train, k=5, threshold=1)]
-
-    best_threshold = max(threshold_results)
-    print("Best threshold found is: " + "{:.2f}".format(best_threshold))
+    print(
+        "Best threshold found is: " + str(best_threshold[0]) + ", with an accuracy of " + "{:.2f}".format(
+            best_threshold[1]))
 
     best_threshold_model = buildtree(train)
-    pruning.prune(best_threshold_model, best_threshold)
+
+    not_prunned_accuracy = evaluation.get_accuracy(best_threshold_model, test)
+    print(
+        "Accuracy found with test dataset on tree trained with training dataset and not prunned yet is: " + "{:.2f}".format(
+            not_prunned_accuracy * 100) + " %")
+
+    pruning.prune(best_threshold_model, best_threshold[0])
     best_threshold_accuracy = evaluation.get_accuracy(best_threshold_model, test)
     print(
         "Accuracy found with test dataset, "
         "on tree trained with training dataset and pruned with the best threshold "
         "found is: "
         + "{:.2f}".format(best_threshold_accuracy * 100) + " %")
-
 
 if __name__ == "__main__":
     main()
