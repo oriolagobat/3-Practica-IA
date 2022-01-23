@@ -377,7 +377,7 @@ def _find_optimal_threshold(data):
 
     """ Change if you want to try to find the optimal threshold with more iterations"""
     """ There will always be one more iteration than the one detailed here"""
-    iterations_minus_one = 10
+    iterations_minus_one = 15
 
     segment_division = 1 / iterations_minus_one
     for i in range(iterations_minus_one + 1):
